@@ -1,5 +1,12 @@
 import librosa
 import numpy as np
+from src.config.config_loader import load_config
+
+config = load_config("src/config/config.yaml")
+
+sample_rate = config["audio"]["sample_rate"]
+pitch_factor = config["audio"]["pitch_factor"]
+stretch_rate = config["audio"]["stretch_rate"]
 
 '''
 To generate syntactic data for audio, we can apply noise injection, shifting time,
@@ -22,12 +29,12 @@ def noise(data):
     data = data + noise_amp*np.random.normal(size=data.shape[0])
     return data
 
-def stretch(data, rate=0.8):
-    return librosa.effects.time_stretch(data, rate=rate)
+def stretch(data):
+    return librosa.effects.time_stretch(data, rate=stretch_rate)
 
 def shift(data):
     shift_range = int(np.random.uniform(low=-5, high = 5)*1000)
     return np.roll(data, shift_range)
 
-def pitch(data, pitch_factor=0.7):
-    return librosa.effects.pitch_shift(data, sr=22050, n_steps=pitch_factor)
+def pitch(data):
+    return librosa.effects.pitch_shift(data, sr=sample_rate, n_steps=pitch_factor)
