@@ -38,3 +38,51 @@ def shift(data):
 
 def pitch(data):
     return librosa.effects.pitch_shift(data, sr=sample_rate, n_steps=pitch_factor)
+
+def extract_features(data):
+    # ZCR
+    result = np.array([])
+    zcr = np.mean(librosa.feature.zero_crossing_rate(y=data).T, axis=0)
+    result=np.hstack((result, zcr)) # stacking horizontally
+
+    # Chroma_stft
+    stft = np.abs(librosa.stft(data))
+    chroma_stft = np.mean(librosa.feature.chroma_stft(S=stft, sr=sample_rate).T, axis=0)
+    result = np.hstack((result, chroma_stft)) # stacking horizontally
+
+    # MFCC
+    mfcc = np.mean(librosa.feature.mfcc(y=data, sr=sample_rate).T, axis=0)
+    result = np.hstack((result, mfcc)) # stacking horizontally
+
+    # Root Mean Square Value
+    rms = np.mean(librosa.feature.rms(y=data).T, axis=0)
+    result = np.hstack((result, rms)) # stacking horizontally
+
+    # MelSpectogram
+    mel = np.mean(librosa.feature.melspectrogram(y=data, sr=sample_rate).T, axis=0)
+    result = np.hstack((result, mel)) # stacking horizontally
+
+    return result
+
+def get_features(path, label=None):
+    # Load audio data without specifying duration and offset (they are fixed)
+    data = librosa.load(path, sr=sample_rate)[0]
+
+    # Extract features without augmentation
+    res1 = extract_features(data)
+    result = np.array(res1)
+
+    # Apply augmentation only if the label is "glass_break"
+    if label == "glass_break":
+        # Add noise
+        noise_data = noise(data)
+        res2 = extract_features(noise_data)
+        result = np.vstack((result, res2))
+
+        # Stretch and pitch
+        new_data = stretch(data)
+        data_stretch_pitch = pitch(new_data)
+        res3 = extract_features(data_stretch_pitch)
+        result = np.vstack((result, res3))
+
+    return result
