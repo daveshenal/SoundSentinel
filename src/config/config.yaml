@@ -2,6 +2,8 @@
 
 audio:
   sample_rate: 22050
+  pitch_factor: 0.7
+  stretch_rate: 0.8
 
 data:
   path: "data/annotations/annotations.csv"
